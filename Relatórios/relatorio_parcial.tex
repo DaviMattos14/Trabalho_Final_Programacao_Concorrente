@@ -1,0 +1,79 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+
+\title{Leitura de arquivo para contagem de palavras}
+\author{Davi dos Santos Mattos \\
+        Daniel Li Vam Man \\
+        Pedro André Alves Chaves}
+\date{Relatório Parcial \\ Programação Concorrente (ICP-361) - 2025/2}
+
+\begin{document}
+
+\maketitle
+
+\section*{1. Descrição do problema geral}
+
+O problema escolhido é a contagem de palavras em um \textit{arquivo.txt} . Uma tafera muito comum em aplicações de análise de dados, mineração de texto, recuperação da informação e processamento de linguagem neural.
+
+Uma palavra consiste numa sequência de caracteres do alfabeto e a contagem ignora se a letra está em maiúsculo ou minúsculo. As pontuações e espaços indicam o começo e fim de uma palavra.
+\begin{itemize}
+    \item \textbf{Entrada}: Arquivo de Texto (.txt) qualquer.
+    \item \textbf{Saída}: Número de palavras encontradas no arquivo
+\end{itemize}
+
+O problema se beneficia da concorrência quando temos que lidar com arquivos de texto muito grandes, pois podemos dividir o arquivo em partes e cada thread executará sua tarefa de contagem de forma paralela, reduzindo dessa forma o tempo de processamento.
+    
+
+\section*{2. Projeto da solução concorrente}
+
+Dentre as estratégias que podemos usar temos
+\begin{itemize}
+    \item Divisão do arquivo por linhas e usar várias threads para processar as linhas simultaneamente 
+    \item Divisão do arquivo por blocos de tamanhos fixos (bytes)
+    \item Modelo produtor-consumidor, uma thread lê o arquivo e envia partes para uma fila compartilhada
+\end{itemize}
+
+Dentre as estratégias listadas acima optamos por seguir com o modelo produtor-consumidor, pois para arguivos muitos grande, se torna muito custoso carregar todo arquivo na memória, e como queremos reduzir o custo e aumentar o desempenho, o modelo se colocar como a melhor escolha. 
+
+\section*{3. Casos de teste de corretude e desempenho}
+
+Para podermos avaliar a solução vamos predefinir duas coisas, que são: 
+\begin{enumerate}
+    \item \textbf{Tamanho de arquivos}: Pequeno (KB), Médio (MB) e Grande (GB)
+    \item \textbf{Número de Threads}: \{2, 4, 8, 16\}
+\end{enumerate}
+
+Para avaliar a \textbf{Corretude}:
+\begin{itemize}
+    \item Testes com arquivos vazios, arquivos com uma palavra e arquivos somente com caracteres especiais e pontuação.
+    \item Comparar o resultado da versão sequêncial com a versão concorrente para os casos pequeno(KB) e médio (MB)
+    \item Comparar se a quantidade de palavras total coincide em ambos os casos 
+\end{itemize}
+
+Para avaliar o \textbf{Desempenho}:
+\begin{enumerate}
+    \item Rodar a solução para arquivos com tamanhos diferentes
+    \item Executar com diferentes números de threads
+    \item Medir o tempo de execução para cada execução
+\end{enumerate}
+Vamos focar em utilizar somente arquivos de médio e grande porte, visto que arquivos pequenos podem não demonstrar ganhos significativos devido ao comportamento das threads.
+
+\section*{4. Referências bibliográficas}
+\begin{thebibliography}{9}
+    \bibitem{exemplo1}
+    Rossetto, S. \textbf{Slides de Aula}. 
+
+    \bibitem{exemplo2}
+    Maratona de programação paralela (Mackenzie). Disponível em: http://lspd.mackenzie.br/marathon/old.html. 
+
+    \bibitem{exemplo3}
+    P. Pacheco, \textbf{An Introduction to Parallel Programming}, Morgan Kaufmann, 2011.
+
+    \bibitem{exemplo4}
+    Martin Porter’s Stemming algorithm as a C library. Disponível em: https://github.com/wooorm/stmr.c
+
+    
+\end{thebibliography}
+
+\end{document}
