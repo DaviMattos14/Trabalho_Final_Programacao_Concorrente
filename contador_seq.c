@@ -1,19 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-const char *separadores = " \t\n\r.,;:!?\"'()[]{}*";
+#include "timer.h"
+
+double start, finish, delta;
+const char *separadores = " \t\n\r.,;:!?\"'()[]{}";
 
 int main(int argc, char *argv[])
 {
-
     FILE *arq;
 
-    if (argc < 3)
+    if (argc < 2)
     {
-        printf("Error! digite %s <nome_do_arquivo.txt> <tam_buffer>\n", argv[0]);
+        printf("Uso: %s <nome_do_arquivo.txt>\n", argv[0]);
         return 1;
     }
 
+    GET_TIME(start);
     arq = fopen(argv[1], "r");
     if (arq == NULL)
     {
@@ -21,15 +24,9 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    int buffer = atoi(argv[2]);
-    if (buffer <= 0)
-    {
-        printf("--ERRO: Tamanho de buffer inválido\n");
-        exit(-1);
-    }
-
-    char *texto;
-    texto = (char *)malloc(buffer * sizeof(char));
+    /* decide um buffer padrão (pode ajustar) */
+    const size_t BUFFER = 1024;
+    char *texto = (char *)malloc(BUFFER);
     if (texto == NULL)
     {
         printf("--ERRO: Falha ao alocar memoria.\n");
@@ -38,20 +35,43 @@ int main(int argc, char *argv[])
     }
 
     int contador = 0;
-    while (fgets(texto, buffer, arq))
+    int palavra_quebrada = 0; /* flag: indica se o bloco anterior terminou no meio de palavra */
+
+    while (fgets(texto, (int)BUFFER, arq))
     {
+        size_t len = strlen(texto);
+
+        /* verifica se o bloco atual começa no meio de uma palavra */
+        int comeca_com_char = (len > 0 && strchr(separadores, texto[0]) == NULL);
+
+        /* se o bloco anterior terminou no meio de palavra e o atual começa com uma letra,
+           então a mesma palavra foi contada duas vezes (no bloco anterior e aqui).
+           Corrige subtraindo 1 antes de contar os tokens deste bloco. */
+        if (palavra_quebrada && comeca_com_char)
+            contador--;
+
         char *palavra = strtok(texto, separadores);
         while (palavra != NULL)
         {
             contador++;
             palavra = strtok(NULL, separadores);
         }
+
+        /* atualiza flag: se o último caractere NÃO for separador, então este bloco terminou no meio de uma palavra */
+        if (len > 0 && strchr(separadores, texto[len - 1]) == NULL)
+            palavra_quebrada = 1;
+        else
+            palavra_quebrada = 0;
     }
 
-    printf("Arquivo: %s\tNumero de palavras: %d\n", argv[1], contador);
+    fclose(arq);
+    GET_TIME(finish);
+    delta = finish - start;
+
+    printf("=============================================================================================\n");
+    printf("Arquivo: %s \tNumero de palavras: %d \tTempo de Execucao: %lf\n", argv[1], contador, delta);
+    printf("=============================================================================================\n");
 
     free(texto);
-    fclose(arq);
-
     return 0;
 }
