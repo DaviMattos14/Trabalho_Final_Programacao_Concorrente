@@ -4,7 +4,7 @@
 #include "timer.h"
 
 double start, finish, delta;
-const char *separadores = " \t\n\r.,;:!?\"'()[]{}";
+const char *separadores = " \t\n\r¹²³£¢¬§ªº°\"!@#$%¨&*()_+`{}^<>:?'=´[]~,.;/";
 
 int main(int argc, char *argv[])
 {

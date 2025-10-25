@@ -1,29 +1,53 @@
 # Nome do compilador e flags
 CC = gcc
-CFLAGS = -Wall 
+CFLAGS = -Wall
 
 # Nome do executável
-TARGET = seq
+SEQ = sequencial.exe
+CONC = concorrente.exe
 
 # Arquivos-fonte
-SRCS = contador_seq.c
+SEQ_SRCS = contador_seq.c
+CONC_SRCS = contador_conc.c
+
+# Arquivo de log
+LOG_FILE = log.txt
 
 # Regra padrão
-all: $(TARGET) run
+all: $(SEQ) $(CONC) run
 
 # Compilação
-$(TARGET): $(SRCS) timer.h
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRCS)
+$(SEQ): $(SEQ_SRCS) timer.h
+	$(CC) $(CFLAGS) -o $(SEQ) $(SEQ_SRCS)
+
+$(CONC): $(CONC_SRCS) timer.h
+	$(CC) $(CFLAGS) -pthread -o $(CONC) $(CONC_SRCS)
 
 # Execuções automáticas
 run:
-	@echo "== Executando testes =="
-	@./$(TARGET) teste.txt 
-	@./$(TARGET) arquivo_KB.txt 
-	@./$(TARGET) arquivo_MB.txt 
-	@./$(TARGET) arquivo_GB.txt 
-	@echo "== Fim =="
+	@( \
+		echo "== INICIANDO EXECUCAO ==" & \
+		echo "---------- KB ----------" & \
+		echo "----> SEQUENCIAL" & \
+		$(SEQ) arquivo_KB.txt & \
+		echo "----> CONCORRENTE" & \
+		(for %%t in (2 4 8 16) do $(CONC) arquivo_KB.txt %%t) & \
+		\
+		echo "---------- MB ----------" & \
+		echo "----> SEQUENCIAL" & \
+		$(SEQ) arquivo_MB.txt & \
+		echo "----> CONCORRENTE" & \
+		(for %%t in (2 4 8 16) do $(CONC) arquivo_MB.txt %%t) & \
+		\
+		echo "---------- GB ----------" & \
+		echo "----> SEQUENCIAL" & \
+		$(SEQ) arquivo_GB.txt & \
+		echo "----> CONCORRENTE" & \
+		(for %%t in (2 4 8 16) do $(CONC) arquivo_GB.txt %%t) & \
+		\
+		echo "== FIM ==" \
+	) > $(LOG_FILE) 2>&1
 
 # Limpeza
 clean:
-	rm -f $(TARGET)
+	@del $(SEQ) $(CONC)
