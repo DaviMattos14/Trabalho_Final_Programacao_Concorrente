@@ -5,10 +5,12 @@ CFLAGS = -Wall
 # Nome do executável
 SEQ = sequencial.exe
 CONC = concorrente.exe
+TESTE = cont_c.exe
 
 # Arquivos-fonte
 SEQ_SRCS = contador_seq.c
 CONC_SRCS = contador_conc.c
+TESTE_SRCS = cont_c.c
 
 # Arquivo de log
 LOG_FILE = log.txt
@@ -23,8 +25,10 @@ $(SEQ): $(SEQ_SRCS) timer.h
 $(CONC): $(CONC_SRCS) timer.h
 	$(CC) $(CFLAGS) -pthread -o $(CONC) $(CONC_SRCS)
 
+$(TESTE): $(TESTE_SRCS) timer.h
+	$(CC) $(CFLAGS) -pthread -o $(TESTE) $(TESTE_SRCS)
 # Execuções automáticas
-run:
+run: $(SEQ) $(CONC)
 	@( \
 		echo "== INICIANDO EXECUCAO ==" & \
 		echo "---------- KB ----------" & \
@@ -50,4 +54,15 @@ run:
 
 # Limpeza
 clean:
-	@del $(SEQ) $(CONC)
+	@del $(SEQ) $(CONC) $(TESTE)
+
+# ...
+# Adicionada a dependência $(TESTE)
+teste: $(TESTE) $(SEQ)
+	@echo "Iniciando arquivo teste"
+	@$(SEQ) arquivo_GB.txt
+	@$(TESTE) arquivo_GB.txt 2
+	@$(TESTE) arquivo_GB.txt 4
+	@$(TESTE) arquivo_GB.txt 8
+	@$(TESTE) arquivo_GB.txt 16
+	@echo "FIM"

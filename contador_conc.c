@@ -5,7 +5,7 @@
 #include <semaphore.h>
 #include "timer.h"
 
-#define BUFFER 100         /* número de blocos no buffer */
+#define BUFFER 10         /* número de blocos no buffer */
 #define TAMANHO_LEITURA 1024 /* 1KB por leitura de disco */
 
 const char *separadores = " \t\n\r¹²³£¢¬§ªº°\"!@#$%¨&*()_+`{}^<>:?'=´[]~,.;/";
@@ -221,9 +221,9 @@ int main(int argc, char **argv)
     GET_TIME(finish);
     delta = finish - start;
 
-    printf("=============================================================================================\n");
+    //printf("=============================================================================================\n");
     printf("Arquivo: %s \tNumero de palavras: %ld \tTempo de Execucao: %lf \tNum Threads: %d\n", argv[1], total, delta, nthreads);
-    printf("=============================================================================================\n");
+    //printf("=============================================================================================\n");
 
     free(consumidores);
     sem_destroy(&mutex);

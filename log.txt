@@ -1,56 +1,26 @@
 "== INICIANDO EXECUCAO ==" 
 "---------- KB ----------" 
 "----> SEQUENCIAL" 
-=============================================================================================
-Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.005981
-=============================================================================================
+Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.008134
 "----> CONCORRENTE" 
-=============================================================================================
-Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.006995 	Num Threads: 2
-=============================================================================================
-=============================================================================================
-Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.005046 	Num Threads: 4
-=============================================================================================
-=============================================================================================
-Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.006526 	Num Threads: 8
-=============================================================================================
-=============================================================================================
-Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.007025 	Num Threads: 16
-=============================================================================================
+Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.006444 	Num Threads: 2
+Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.023537 	Num Threads: 4
+Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.010981 	Num Threads: 8
+Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.002540 	Num Threads: 16
 "---------- MB ----------" 
 "----> SEQUENCIAL" 
-=============================================================================================
-Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.081908
-=============================================================================================
+Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.089669
 "----> CONCORRENTE" 
-=============================================================================================
-Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.091039 	Num Threads: 2
-=============================================================================================
-=============================================================================================
-Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.183971 	Num Threads: 4
-=============================================================================================
-=============================================================================================
-Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.064442 	Num Threads: 8
-=============================================================================================
-=============================================================================================
-Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.060963 	Num Threads: 16
-=============================================================================================
+Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.346598 	Num Threads: 2
+Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.130171 	Num Threads: 4
+Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.117646 	Num Threads: 8
+Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.145028 	Num Threads: 16
 "---------- GB ----------" 
 "----> SEQUENCIAL" 
-=============================================================================================
-Arquivo: arquivo_GB.txt 	Numero de palavras: 3445499 	Tempo de Execucao: 0.862041
-=============================================================================================
+Arquivo: arquivo_GB.txt 	Numero de palavras: 3445499 	Tempo de Execucao: 1.007448
 "----> CONCORRENTE" 
-=============================================================================================
-Arquivo: arquivo_GB.txt 	Numero de palavras: 3445499 	Tempo de Execucao: 1.584512 	Num Threads: 2
-=============================================================================================
-=============================================================================================
-Arquivo: arquivo_GB.txt 	Numero de palavras: 3445499 	Tempo de Execucao: 0.966543 	Num Threads: 4
-=============================================================================================
-=============================================================================================
-Arquivo: arquivo_GB.txt 	Numero de palavras: 3445499 	Tempo de Execucao: 0.878507 	Num Threads: 8
-=============================================================================================
-=============================================================================================
-Arquivo: arquivo_GB.txt 	Numero de palavras: 3445499 	Tempo de Execucao: 0.799650 	Num Threads: 16
-=============================================================================================
+Arquivo: arquivo_GB.txt 	Numero de palavras: 3445499 	Tempo de Execucao: 1.248462 	Num Threads: 2
+Arquivo: arquivo_GB.txt 	Numero de palavras: 3445499 	Tempo de Execucao: 0.879649 	Num Threads: 4
+Arquivo: arquivo_GB.txt 	Numero de palavras: 3445499 	Tempo de Execucao: 0.861427 	Num Threads: 8
+Arquivo: arquivo_GB.txt 	Numero de palavras: 3445499 	Tempo de Execucao: 0.846063 	Num Threads: 16
 "== FIM ==" 
