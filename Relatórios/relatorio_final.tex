@@ -1,0 +1,102 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+
+\title{Leitura de arquivo para contagem de palavras}
+\author{Davi dos Santos Mattos \\
+        Daniel Li Vam Man \\
+        Pedro André Alves Chaves}
+\date{Relatório Parcial \\ Programação Concorrente (ICP-361) - 2025/2}
+
+\begin{document}
+
+\maketitle
+
+\section*{1. Descrição do problema geral}
+
+O problema escolhido é a contagem de palavras em um \textit{arquivo.txt} . Uma tafera muito comum em aplicações de análise de dados, mineração de texto, recuperação da informação e processamento de linguagem neural.
+
+Uma palavra consiste numa sequência de caracteres do alfabeto e a contagem ignora se a letra está em maiúsculo ou minúsculo. As pontuações e espaços indicam o começo e fim de uma palavra.
+\begin{itemize}
+    \item \textbf{Entrada}: Arquivo de Texto (.txt) qualquer.
+    \item \textbf{Saída}: Número de palavras encontradas no arquivo
+\end{itemize}
+
+O problema se beneficia da concorrência quando temos que lidar com arquivos de texto muito grandes, pois podemos dividir o arquivo em partes e cada thread executará sua tarefa de contagem de forma paralela, reduzindo dessa forma o tempo de processamento.
+    
+
+
+\section*{2. Projeto e implementação da solução concorrente}
+
+Descrever o projeto da solução concorrente para o problema:
+
+\begin{itemize}
+    \item apontar ajustes feitos no projeto inicial (se for o caso);
+    \item descrever as principais decisões de implementação adotadas e suas justificativas.
+\end{itemize}
+
+Não mostrar o código-fonte, ele será visto diretamente. O objetivo aqui é descrever
+e justificar as decisões de projeto e implementação tomadas.
+
+\section*{3. Testes de corretude}
+
+Descrever como o programa foi testado:
+
+\begin{itemize}
+    \item descrever o conjunto de casos de teste usados para avaliação da corretude da
+    solução proposta (lembrar de variar a dimensão dos dados de entrada e o número
+    de threads usadas) e os resultados obtidos.
+\end{itemize}
+
+Não mostrar as telas de execução, o objetivo aqui é descrever como os testes foram
+feitos e os resultados obtidos.
+
+\section*{4.Avaliação de desempenho}
+
+Descrever como o ganho de desempenho foi avaliado:
+
+\begin{itemize}
+    \item descrever o conjunto de casos de teste usados para a avaliação de desempenho
+    (lembrar de variar a dimensão dos dados de entrada e o número de threads usadas);
+    \item descrever a configuração da máquina onde os testes foram realizados (identificação
+    do processador, quantidade de núcleos de execução, sistema operacional);
+    \item descrever quantas vezes o mesmo caso de teste foi executado e qual medida de
+    tempo foi escolhida;
+    \item mostrar o cálculo da aceleração e eficiência e/ou outras métricas pertinentes ao
+    problema;
+    \item apresentar os resultados obtidos condensados na forma de tabelas ou gráficos.
+\end{itemize}
+
+Não mostrar as telas de execução, o objetivo aqui é apresentar os resultados finais
+obtidos (tempo de execução, aceleração, eficiência, etc.).
+
+\section*{5. Discussão}
+
+Apresentar uma análise dos resultados obtidos:
+
+\begin{itemize}
+    \item discutir se o ganho de desempenho — ou as vantagens pretendidas com a solução
+    concorrente — foram alcançadas ou não e por quais motivos;
+    \item apresentar possíveis melhorias do programa, se for o caso;
+    \item discutir outras questões que forem pertinentes;
+    \item descrever dificuldades encontradas para a realização do trabalho, se for o caso.
+\end{itemize}
+
+\section*{6. Referências bibliográficas}
+\begin{thebibliography}{9}
+    \bibitem{exemplo1}
+    Rossetto, S. \textbf{Slides de Aula}. 
+
+    \bibitem{exemplo2}
+    Maratona de programação paralela (Mackenzie). Disponível em: http://lspd.mackenzie.br/marathon/old.html. 
+
+    \bibitem{exemplo3}
+    P. Pacheco, \textbf{An Introduction to Parallel Programming}, Morgan Kaufmann, 2011.
+
+    \bibitem{exemplo4}
+    Martin Porter’s Stemming algorithm as a C library. Disponível em: https://github.com/wooorm/stmr.c
+
+    
+\end{thebibliography}
+
+\end{document}
