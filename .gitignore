@@ -1,3 +1,5 @@
-arquivo_GB.txt
 amazon_review.zip
-arquivo_GB.txt
+*.aux
+*.log
+*.synctex.gz
+*.txt
