@@ -1,23 +1,20 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <semaphore.h>
-#include "timer.h"
+#include <string.h>
+#include <ctype.h>
+#include "timer.h" // Assumindo que você tenha este arquivo
 
-#define BUFFER 10         /* número de blocos no buffer */
-#define TAMANHO_LEITURA 1024 /* 1KB por leitura de disco */
+// --- Nomes de variáveis de contador_conc.c ---
+#define BUFFER 100
+#define TAMANHO_LEITURA 1024 * 100// 100KB
 
+char *Buffer[BUFFER]; // O buffer compartilhado (fila de tarefas)
 const char *separadores = " \t\n\r¹²³£¢¬§ªº°\"!@#$%¨&*()_+`{}^<>:?'=´[]~,.;/";
-
-char *Buffer[BUFFER];     /* buffer circular compartilhado */
-int in = 0, out = 0; /* índices circulares */
-int fim = 0;         /* flag: produção encerrada */
-
-/* semáforos */
-sem_t cheio, vazio, mutex;
-
-pthread_t *consumidores;
+sem_t cheio, vazio; // Semáforos de contagem
+sem_t mutex; // Mutex para proteger o acesso ao buffer
+// ------------------------------------------------
 
 
 int contar_palavras(char *texto)
@@ -27,10 +24,12 @@ int contar_palavras(char *texto)
 
     while (*ptr != '\0')
     {
+        // Pula os separadores
         ptr += strspn(ptr, separadores);
         if (*ptr == '\0') {
             break;
         }
+        // Encontra o fim da palavra
         size_t len_palavra = strcspn(ptr, separadores);
 
         if (len_palavra > 0)
@@ -43,56 +42,51 @@ int contar_palavras(char *texto)
 }
 
 
-void Insere(char *bloco)
-{
-    sem_wait(&vazio);
-    sem_wait(&mutex);
+char *Retira(void) {
+    static int out = 0;
+    char *frag;
 
-    Buffer[in] = bloco;
-    in = (in + 1) % BUFFER;
+    sem_wait(&cheio); // Espera por um slot cheio
+    sem_wait(&mutex); // Trava o mutex
+    
+    frag = Buffer[out]; 
+    out = (out + 1) % BUFFER; 
+    
+    sem_post(&mutex); // Libera o mutex
+    sem_post(&vazio); // Sinaliza que há um novo slot vazio
 
-    sem_post(&mutex);
-    sem_post(&cheio);
+    return frag;
 }
 
-
-char *Retira()
-{
-    char *bloco;
-
-    sem_wait(&cheio);
-    sem_wait(&mutex);
-
-    bloco = Buffer[out];
-    Buffer[out] = NULL;
-    out = (out + 1) % BUFFER;
-
-    sem_post(&mutex);
-    sem_post(&vazio);
-
-    return bloco;
+void Insere(char *frag) {
+    static int in = 0;
+    sem_wait(&vazio); // Espera por um slot vazio
+    sem_wait(&mutex); // Trava o mutex para acesso exclusivo ao buffer
+    
+    Buffer[in] = frag; // Usa 'Buffer'
+    in = (in + 1) % BUFFER; // Usa 'BUFFER'
+    
+    sem_post(&mutex); // Libera o mutex
+    sem_post(&cheio); // Sinaliza que há um novo slot cheio
 }
 
-void *consumidor(void *arg)
-{
-    long parcial = 0;
-    char *texto;
+void *consumidor(void *arg) {
+    long parcial = 0; // Contador parcial
+    char *bloco_para_processar;
 
-    while (1)
-    {
-        texto = Retira();
-        if (texto == NULL)
-        {
-            if (fim)
-                break;
-            else
-                continue;
+    while (1) {
+        bloco_para_processar = Retira(); 
+
+        // Se o bloco for NULL, é o sinal de término
+        if (bloco_para_processar == NULL) {
+            break; 
         }
-
-        parcial += contar_palavras(texto);
-        free(texto);
+        parcial += contar_palavras(bloco_para_processar);
+        
+        free(bloco_para_processar); // Libera a memória que o produtor alocou
     }
 
+    // Aloca memória para o resultado parcial e o retorna
     long *resultado = malloc(sizeof(long));
     if (resultado == NULL) {
         fprintf(stderr, "Erro de alocação de memória no consumidor\n");
@@ -100,135 +94,126 @@ void *consumidor(void *arg)
     }
     *resultado = parcial;
     pthread_exit((void*) resultado);
-
-    return NULL;
+    return NULL; 
 }
 
-int main(int argc, char **argv)
-{
-    if (argc < 3)
-    {
+int main(int argc, char *argv[]){
+    if (argc != 3) {
         printf("Uso: %s <arquivo.txt> <num_threads>\n", argv[0]);
         return 1;
     }
 
-    FILE *arq = fopen(argv[1], "r");
-    if (!arq)
-    {
-        perror("Erro ao abrir arquivo");
-        exit(1);
+    int num_threads = atoi(argv[2]);
+    if (num_threads <= 0) {
+        printf("Número de threads deve ser maior que 0\n");
+        return 1;
+    }
+    if (num_threads > BUFFER) num_threads = BUFFER;
+
+    FILE *arq;
+    arq = fopen(argv[1],"r");
+    if (arq==NULL) {
+        printf("Erro ao abrir o arquivo %s\n", argv[1]);
+        return 1;
     }
 
-    int nthreads = atoi(argv[2]);
-    if (nthreads < 1) nthreads = 1;
-    if (nthreads > BUFFER) nthreads = BUFFER;
-
-    consumidores = malloc(nthreads * sizeof(pthread_t));
-
-    sem_init(&mutex, 0, 1);
-    sem_init(&cheio, 0, 0);
-    sem_init(&vazio, 0, BUFFER);
-
+    pthread_t *tid_consumidores; 
     double start, finish, delta;
+    
+    // --- Inicialização ---
+    sem_init(&vazio, 0, BUFFER); 
+    sem_init(&cheio, 0, 0);          
+    sem_init(&mutex, 0, 1);         
+
+    tid_consumidores = (pthread_t*) malloc(sizeof(pthread_t) * num_threads);
+    if(tid_consumidores == NULL) {
+        printf("Erro ao alocar threads"); exit(1);
+    }
+
+    // --- Início da contagem de tempo ---
     GET_TIME(start);
 
-    for (int i = 0; i < nthreads; i++)
-    {
-        pthread_create(&consumidores[i], NULL, consumidor, NULL);
-    }
-
-
-    char *buffer_leitura = malloc(TAMANHO_LEITURA);
-    char *overlap = NULL; 
-    size_t overlap_len = 0;
-    size_t bytes_lidos;
-
-    if (!buffer_leitura) {
-        perror("Erro ao alocar buffer de leitura");
-        exit(1);
-    }
-
-    while ((bytes_lidos = fread(buffer_leitura, 1, TAMANHO_LEITURA, arq)) > 0)
-    {
-        size_t tamanho_total = overlap_len + bytes_lidos;
-        char *bloco_processar = malloc(tamanho_total + 1); 
-        
-        if(overlap) {
-            memcpy(bloco_processar, overlap, overlap_len);
-            free(overlap);
-            overlap = NULL;
+    // --- Criação das Threads Consumidoras ---
+    for (long i = 0; i < num_threads; i++) {
+        if (pthread_create(&tid_consumidores[i], NULL, consumidor, (void*)i)) {
+            printf("Erro ao criar thread"); exit(1);
         }
-        memcpy(bloco_processar + overlap_len, buffer_leitura, bytes_lidos);
-        bloco_processar[tamanho_total] = '\0';
+    }
+    
+    // --- Lógica do Produtor --- (Buffer de Restos)
+    char leitura[TAMANHO_LEITURA + 1]; 
+    char restos[TAMANHO_LEITURA + 1] = "";  
+    char bloco_processar[TAMANHO_LEITURA * 2 + 1];
+    
+    while (fgets(leitura, TAMANHO_LEITURA + 1, arq)) {
+        strcpy(bloco_processar, restos);
+        strcat(bloco_processar, leitura);
 
-        int pos_corte = tamanho_total - 1;
-        while (pos_corte >= 0 && strchr(separadores, bloco_processar[pos_corte]) == NULL) {
-            pos_corte--;
+        size_t len = strlen(bloco_processar);
+        int pos_corte = -1; 
+
+        for (int i = len - 1; i >= 0; i--) {
+            if (strchr(separadores, bloco_processar[i]) != NULL) {
+                pos_corte = i;
+                break;
+            }
         }
 
-        if (pos_corte < 0) {
-            overlap = bloco_processar; 
-            overlap_len = tamanho_total;
+        if (pos_corte != -1) {
+            strcpy(restos, &bloco_processar[pos_corte + 1]);
+            bloco_processar[pos_corte + 1] = '\0';
+        } 
+        else {
+            strcpy(restos, bloco_processar);
             continue; 
         }
 
-        size_t len_bloco_fila = pos_corte + 1;
-        char *bloco_para_fila = malloc(len_bloco_fila + 1);
-        memcpy(bloco_para_fila, bloco_processar, len_bloco_fila);
-        bloco_para_fila[len_bloco_fila] = '\0';
-        
-        overlap_len = tamanho_total - len_bloco_fila;
-        if (overlap_len > 0) {
-            overlap = malloc(overlap_len + 1); 
-            memcpy(overlap, bloco_processar + len_bloco_fila, overlap_len);
-            overlap[overlap_len] = '\0';
-        } else {
-            overlap = NULL;
-            overlap_len = 0;
+        char *bloco_para_fila = (char*) malloc(strlen(bloco_processar) + 1);
+        if(bloco_para_fila == NULL) {
+            printf("Erro ao alocar bloco para fila"); exit(1);
         }
+        strcpy(bloco_para_fila, bloco_processar);
         
-        free(bloco_processar);
-        Insere(bloco_para_fila); 
+        // 'Insere' já foi definida acima
+        Insere(bloco_para_fila);
     }
-
-    if (overlap) {
-        Insere(overlap);
-    }
-
-    free(buffer_leitura);
-    fclose(arq);
-
-
-    sem_wait(&mutex);
-    fim = 1;
-    sem_post(&mutex);
-
-
-    for (int i = 0; i < nthreads; i++)
-        Insere(NULL); /* acorda consumidores */
     
+    // --- Fim do Arquivo ---
+    if (strlen(restos) > 0) {
+        char *bloco_final = (char*) malloc(strlen(restos) + 1);
+        if(bloco_final == NULL) {
+            printf("Erro ao alocar bloco final"); exit(1);
+        }
+        strcpy(bloco_final, restos);
+        Insere(bloco_final);
+    }
+
+    for(int i=0; i<num_threads; i++) {
+        Insere(NULL);
+    }
+    
+    // --- Agregação de resultados ---
     long total = 0;
-    long *resp_parcial; // Ponteiro para receber o valor retornado
-    
+    long *resp_parcial; 
 
-    for (int i = 0; i < nthreads; i++)
-    {
-        pthread_join(consumidores[i], (void**) &resp_parcial);
-        total += *resp_parcial; // Soma o valor parcial
-        free(resp_parcial);     // Libera a memória alocada pela thread
+    for (int i = 0; i < num_threads; i++) {
+        pthread_join(tid_consumidores[i], (void**) &resp_parcial);
+        total += *resp_parcial; 
+        free(resp_parcial);     
     }
     
+    // --- Fim da contagem de tempo ---
     GET_TIME(finish);
     delta = finish - start;
 
-    //printf("=============================================================================================\n");
-    printf("Arquivo: %s \tNumero de palavras: %ld \tTempo de Execucao: %lf \tNum Threads: %d\n", argv[1], total, delta, nthreads);
-    //printf("=============================================================================================\n");
-
-    free(consumidores);
-    sem_destroy(&mutex);
+    fclose(arq);
+    free(tid_consumidores);
     sem_destroy(&cheio);
     sem_destroy(&vazio);
+    sem_destroy(&mutex);
 
+    // --- Impressão final ---
+    printf("Arquivo: %s \tNumero de palavras: %ld \tTempo de Execucao: %lf \tNum Threads: %d\n", argv[1], total, delta, num_threads);
+    
     return 0;
 }

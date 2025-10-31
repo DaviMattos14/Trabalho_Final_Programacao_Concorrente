@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     }
 
     /* decide um buffer padrão (pode ajustar) */
-    const size_t BUFFER = 1024;
+    const size_t BUFFER = 1024*100; // 100 KB
     char *texto = (char *)malloc(BUFFER);
     if (texto == NULL)
     {

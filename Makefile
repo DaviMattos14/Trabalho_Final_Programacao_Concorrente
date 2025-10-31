@@ -10,7 +10,7 @@ TESTE = cont_c.exe
 # Arquivos-fonte
 SEQ_SRCS = contador_seq.c
 CONC_SRCS = contador_conc.c
-TESTE_SRCS = cont_c.c
+TESTE_SRCS = contador_conc.c
 
 # Arquivo de log
 LOG_FILE = log.txt
@@ -60,9 +60,7 @@ clean:
 # Adicionada a dependência $(TESTE)
 teste: $(TESTE) $(SEQ)
 	@echo "Iniciando arquivo teste"
-	@$(SEQ) arquivo_GB.txt
-	@$(TESTE) arquivo_GB.txt 2
-	@$(TESTE) arquivo_GB.txt 4
-	@$(TESTE) arquivo_GB.txt 8
-	@$(TESTE) arquivo_GB.txt 16
+	@$(SEQ) old-newspaper.txt
+	@$(TESTE) old-newspaper.txt 4
+	@$(TESTE) old-newspaper.txt 8
 	@echo "FIM"

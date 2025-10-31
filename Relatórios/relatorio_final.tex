@@ -2,7 +2,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 
-\title{Leitura de arquivo para contagem de palavras}
+\title{Leitura de arquivo .txt para contagem de palavras}
 \author{Davi dos Santos Mattos \\
         Daniel Li Vam Man \\
         Pedro André Alves Chaves}
@@ -14,29 +14,45 @@
 
 \section*{1. Descrição do problema geral}
 
-O problema escolhido é a contagem de palavras em um \textit{arquivo.txt} . Uma tafera muito comum em aplicações de análise de dados, mineração de texto, recuperação da informação e processamento de linguagem neural.
+O problema escolhido é a contagem de palavras em um \textit{arquivo.txt}. Uma tafera muito comum em aplicações de análise de dados, mineração de texto, recuperação da informação e processamento de linguagem neural.
 
-Uma palavra consiste numa sequência de caracteres do alfabeto e a contagem ignora se a letra está em maiúsculo ou minúsculo. As pontuações e espaços indicam o começo e fim de uma palavra.
+Como bem sabemos existem arquivos de diversos tamanhos, e dependendo do quão grande for, há um limite físico para processar-lo. Causando assim, estouro de memória, em outras palavras, o tamanho do arquivo é maior que o tamanho da memória disponível. Para evitar que esse tipo de problema aconteça, a solução mais adotada é particionar o arquivo em fragmentos menores que caibam na memória, para que assim possam ser processados. Com isso surge um novo problema, dependendo da posição onde for fatiada para delimitar o fragmento, pode ocorrer de uma palavra ser particionada em dois.
+
+A contagem por sua vez, entenque que uma palavra consiste em uma sequência contínua de caracteres alfabéticos, ignorando se a letra está em caixa alta ou caixa baixa. Dentro de um texto, as palavras são delimitadas por separadores, como espaços, pontuações, entre outros, marcando o início e o fim da palavra.
+
 \begin{itemize}
     \item \textbf{Entrada}: Arquivo de Texto (.txt) qualquer.
     \item \textbf{Saída}: Número de palavras encontradas no arquivo
 \end{itemize}
 
-O problema se beneficia da concorrência quando temos que lidar com arquivos de texto muito grandes, pois podemos dividir o arquivo em partes e cada thread executará sua tarefa de contagem de forma paralela, reduzindo dessa forma o tempo de processamento.
-    
+O problema se beneficia da concorrência quando temos que lidar com arquivos de texto muito grandes, pois podemos dividir o arquivo em fragmentos menores e colocar em uma fila de processamento, fazendo com que cada thread execute a tarefa de contagem de forma paralela, reduzindo drasticamente o tempo de processamento, e aumentando o desemepenho.
 
 
 \section*{2. Projeto e implementação da solução concorrente}
 
-Descrever o projeto da solução concorrente para o problema:
+O projeto consiste em fazer duas implementações, sequencial e concorrente, e realizar duas avaliações, corretudo e desempenho.
 
+A solução sequêncial consiste em um programa básico que realiza uma leitura por linha, divindo em fragmentos de leitura, e realizando contagem de palavras por linha do arquivo até o fim do arquivo.
+
+A solução concorrente, por sua vez, consiste em utilizar o modelo produtor-consumidor, onde há uma única thread produtora lendo o arquivo e colocando fragmentos do arquivo em uma fila compartilhada (buffer) entre as threads consumidoras.
+
+Para as ambas soluções definimos o seguinte escopo.
 \begin{itemize}
-    \item apontar ajustes feitos no projeto inicial (se for o caso);
-    \item descrever as principais decisões de implementação adotadas e suas justificativas.
+    \item Fragmento de Leitura: 1KB.
+    \item Tamanho do Buffer: 100, totalizando 100KB  .
 \end{itemize}
 
-Não mostrar o código-fonte, ele será visto diretamente. O objetivo aqui é descrever
-e justificar as decisões de projeto e implementação tomadas.
+Para tratar o problema da palavra quebrada;
+
+Na versão sequencial, é feita uma verificação no fragmento de leitura, se o fragmento terminar com um caracter, é utilizado uma flag para sinalizar que há uma palavra quebrada, caso na próxima leitura o fragmento começe com um caracter, a contagem é corrigida.
+
+Na versão concorrente, o tratamento de palavras quebradas é feito diretamente no produtor, antes de enviar os fragmentos às threads consumidoras.
+
+Durante a leitura de cada fragmento, o produtor concatena o conteúdo restante do fragmento anterior (armazenado em um buffer de restos) com o novo bloco lido.
+Em seguida, o produtor procura o último separador válido dentro desse bloco.
+Se encontrar, ele divide o texto nesse ponto, o conteúdo antes do separador é inserido na fila para ser processado pelas threads, e o conteúdo após o separador é salvo no buffer de restos para ser unido ao próximo fragmento.
+
+Dessa forma, garantimos que nenhuma palavra seja cortada entre dois fragmentos, e que as threads consumidoras recebam apenas blocos com palavras completas, eliminando a necessidade de tratar quebras dentro delas.
 
 \section*{3. Testes de corretude}
 
