@@ -31,23 +31,41 @@ $(TESTE): $(TESTE_SRCS) timer.h
 run: $(SEQ) $(CONC)
 	@( \
 		echo "== INICIANDO EXECUCAO ==" & \
-		echo "---------- KB ----------" & \
+		echo "---------- 100 KB ----------" & \
 		echo "----> SEQUENCIAL" & \
 		$(SEQ) arquivo_KB.txt & \
 		echo "----> CONCORRENTE" & \
-		(for %%t in (2 4 8 16) do $(CONC) arquivo_KB.txt %%t) & \
+		(for %%t in (2 4 8) do $(CONC) arquivo_KB.txt %%t) & \
 		\
-		echo "---------- MB ----------" & \
+		echo "---------- 1.5 MB ----------" & \
 		echo "----> SEQUENCIAL" & \
 		$(SEQ) arquivo_MB.txt & \
 		echo "----> CONCORRENTE" & \
-		(for %%t in (2 4 8 16) do $(CONC) arquivo_MB.txt %%t) & \
+		(for %%t in (2 4 8) do $(CONC) arquivo_MB.txt %%t) & \
 		\
-		echo "---------- GB ----------" & \
+		echo "---------- 500 MB ----------" & \
 		echo "----> SEQUENCIAL" & \
-		$(SEQ) arquivo_GB.txt & \
+		$(SEQ) arquivo_500MB.txt & \
 		echo "----> CONCORRENTE" & \
-		(for %%t in (2 4 8 16) do $(CONC) arquivo_GB.txt %%t) & \
+		(for %%t in (2 4 8) do $(CONC) arquivo_500MB.txt %%t) & \
+		\
+		echo "---------- 1GB ----------" & \
+		echo "----> SEQUENCIAL" & \
+		$(SEQ) arquivo1GB.txt & \
+		echo "----> CONCORRENTE" & \
+		(for %%t in (2 4 8) do $(CONC) arquivo1GB.txt %%t) & \
+		\
+		echo "---------- 2GB ----------" & \
+		echo "----> SEQUENCIAL" & \
+		$(SEQ) arquivo2GB.txt & \
+		echo "----> CONCORRENTE" & \
+		(for %%t in (2 4 8) do $(CONC) arquivo2GB.txt %%t) & \
+		\
+		echo "---------- 4GB ----------" & \
+		echo "----> SEQUENCIAL" & \
+		$(SEQ) arquivo4GB.txt & \
+		echo "----> CONCORRENTE" & \
+		(for %%t in (2 4 8) do $(CONC) arquivo4GB.txt %%t) & \
 		\
 		echo "== FIM ==" \
 	) > $(LOG_FILE) 2>&1

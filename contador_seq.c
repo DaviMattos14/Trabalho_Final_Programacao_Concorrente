@@ -5,13 +5,6 @@
 
 double start, finish, delta;
 const char *separadores = " \t\n\r¹²³£¢¬§ªº°\"!@#$%¨&*()_+`{}^<>:?'=´[]~,.;/";
-char tabela_separadores[256] = {0};
-
-void iniciar_tabela() {
-    for (int i = 0; i < (int)strlen(separadores); i++) {
-        tabela_separadores[(unsigned char)separadores[i]] = 1;
-    }
-}
 
 int main(int argc, char *argv[])
 {
@@ -40,9 +33,6 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    /* inicializa a tabela de separadores (substitui strchr) */
-    iniciar_tabela();
-
     int contador = 0;
     int palavra_quebrada = 0; /* flag: indica se o bloco anterior terminou no meio de palavra */
 
@@ -51,11 +41,7 @@ int main(int argc, char *argv[])
         size_t len = strlen(texto);
 
         /* verifica se o bloco atual começa no meio de uma palavra */
-        int comeca_com_char = 0;
-        if (len > 0) {
-            /* se o primeiro caractere NÃO for separador, então começa com caracter */
-            comeca_com_char = (tabela_separadores[(unsigned char)texto[0]] == 0);
-        }
+        int comeca_com_char = (len > 0 && strchr(separadores, texto[0]) == NULL);
 
         /* se o bloco anterior terminou no meio de palavra e o atual começa com uma letra,
            então a mesma palavra foi contada duas vezes (no bloco anterior e aqui).
@@ -71,7 +57,7 @@ int main(int argc, char *argv[])
         }
 
         /* atualiza flag: se o último caractere NÃO for separador, então este bloco terminou no meio de uma palavra */
-        if (len > 0 && tabela_separadores[(unsigned char)texto[len - 1]] == 0)
+        if (len > 0 && strchr(separadores, texto[len - 1]) == NULL)
             palavra_quebrada = 1;
         else
             palavra_quebrada = 0;
@@ -81,7 +67,9 @@ int main(int argc, char *argv[])
     GET_TIME(finish);
     delta = finish - start;
 
+    //printf("=============================================================================================\n");
     printf("Arquivo: %s \tNumero de palavras: %d \tTempo de Execucao: %lf\n", argv[1], contador, delta);
+    //printf("=============================================================================================\n");
 
     free(texto);
     return 0;
