@@ -30,42 +30,88 @@ O problema se beneficia da concorrência quando temos que lidar com arquivos de 
 
 \section*{2. Projeto e implementação da solução concorrente}
 
-O projeto consiste em fazer duas implementações, sequencial e concorrente, e realizar duas avaliações, corretudo e desempenho.
+O projeto consiste em fazer duas implementações, sequencial e concorrente, e realizar duas avaliações, corretude e desempenho.
 
-A solução sequêncial consiste em um programa básico que realiza uma leitura por linha, divindo em fragmentos de leitura, e realizando contagem de palavras por linha do arquivo até o fim do arquivo.
+A solução sequencial consiste em um programa que lê o arquivo em fragmentos de até 1 KB usando a função fgets. A contagem de palavras é realizada em cada fragmento usando a função strtok, que divide a string com base nos separadores definidos.
 
 A solução concorrente, por sua vez, consiste em utilizar o modelo produtor-consumidor, onde há uma única thread produtora lendo o arquivo e colocando fragmentos do arquivo em uma fila compartilhada (buffer) entre as threads consumidoras.
 
-Para as ambas soluções definimos o seguinte escopo.
-\begin{itemize}
-    \item Fragmento de Leitura: 1KB.
-    \item Tamanho do Buffer: 100, totalizando 100KB  .
+Para as ambas soluções definimos o seguinte escopo: 
+\begin{itemize} 
+    \item Fragmento de Leitura: 1 KB. 
+\end{itemize} 
+Para a solução concorrente, foi definido adicionalmente: 
+\begin{itemize} 
+    \item Tamanho do Buffer: 64 slots, totalizando 64 KB de capacidade. 
 \end{itemize}
+
+Vale destacar que as implementações também diferem na estratégia principal de I/O e contagem. A versão sequencial usa \texttt{fgets} (leitura baseada em linha/fragmento) e \texttt{strtok}, enquanto a versão concorrente utiliza \texttt{fread} (leitura otimizada de blocos brutos) e uma função \texttt{contar\_palavras} customizada, que percorre o texto manualmente com auxílio de uma tabela de separadores para consulta, sendo algoritmicamente mais eficiente.
 
 Para tratar o problema da palavra quebrada;
 
 Na versão sequencial, é feita uma verificação no fragmento de leitura, se o fragmento terminar com um caracter, é utilizado uma flag para sinalizar que há uma palavra quebrada, caso na próxima leitura o fragmento começe com um caracter, a contagem é corrigida.
 
 Na versão concorrente, o tratamento de palavras quebradas é feito diretamente no produtor, antes de enviar os fragmentos às threads consumidoras.
-
-Durante a leitura de cada fragmento, o produtor concatena o conteúdo restante do fragmento anterior (armazenado em um buffer de restos) com o novo bloco lido.
-Em seguida, o produtor procura o último separador válido dentro desse bloco.
-Se encontrar, ele divide o texto nesse ponto, o conteúdo antes do separador é inserido na fila para ser processado pelas threads, e o conteúdo após o separador é salvo no buffer de restos para ser unido ao próximo fragmento.
+Durante a leitura de cada fragmento, o produtor concatena o conteúdo restante do fragmento anterior (armazenado em um buffer de restos) com o novo bloco lido. Em seguida, o produtor procura o último separador válido dentro desse bloco. Se encontrar, ele divide o texto nesse ponto, o conteúdo antes do separador é inserido na fila para ser processado pelas threads, e o conteúdo após o separador é salvo no buffer de restos para ser unido ao próximo fragmento.
 
 Dessa forma, garantimos que nenhuma palavra seja cortada entre dois fragmentos, e que as threads consumidoras recebam apenas blocos com palavras completas, eliminando a necessidade de tratar quebras dentro delas.
 
 \section*{3. Testes de corretude}
 
-Descrever como o programa foi testado:
+Para testar a corretude das implementações, isto é, realizar a contagem correta de palavras em um arquivos, ambas implementações foram submetidas ao sequinte escopo de teste:
 
+Arquivos de entrada:
 \begin{itemize}
-    \item descrever o conjunto de casos de teste usados para avaliação da corretude da
-    solução proposta (lembrar de variar a dimensão dos dados de entrada e o número
-    de threads usadas) e os resultados obtidos.
+    \item Arquivo Teste: Que consiste em um arquivo base no qual já se sabe o número total de palavras que ele contém. (\textbf{Resultado esperado}: 26)
+    \item Arquivo Vazio (Resultado esperado: 0)
+    \item Arquivo somente com separadores (\textbf{Resultado esperado}: 0)
+    \item Arquivo com 100 KB de tamanho (Pequeno) (\textbf{Resultado esperado}: 14744)
+    \item Arquivo com 1.5 MB de tamanho (Médio) (\textbf{Resultado esperado}: 264000)
+    \item Arquivo com 2.66 GB de tamanho (Grande)
 \end{itemize}
 
-Não mostrar as telas de execução, o objetivo aqui é descrever como os testes foram
-feitos e os resultados obtidos.
+Para a versão concorrente fora utilizado as seguintes quantidade de threads:
+\begin{itemize}
+    \item 2 threads
+    \item 4 threads
+    \item 8 threads
+    \item 16 threads
+\end{itemize}
+
+Após executar os testes foram obtidos os seguintes resultados:
+
+\begin{itemize}
+    \item Arquivo Teste com letras do alfabeto
+    \begin{itemize}
+        \item \textbf{Concorrente:} Numero de palavras: 26
+        \item \textbf{Sequencial:} Numero de palavras: 26
+    \end{itemize}
+    \item Arquivo Vazio
+    \begin{itemize}
+        \item \textbf{Concorrente:} Numero de palavras: 0 
+        \item \textbf{Sequencial:} Numero de palavras: 0
+    \end{itemize}
+    \item Arquivo somente com separadores
+    \begin{itemize}
+        \item \textbf{Concorrente:} Numero de palavras: 0
+        \item \textbf{Sequencial:} Numero de palavras: 0
+    \end{itemize}
+    \item Arquivo com 100 KB
+    \begin{itemize}
+        \item \textbf{Concorrente:} Numero de palavras: 14744
+        \item \textbf{Sequencial:} Numero de palavras: 14744
+    \end{itemize}
+    \item Arquivo com 1.5 MB:
+    \begin{itemize}
+        \item \textbf{Concorrente:} Numero de palavras: 264000
+        \item \textbf{Sequencial:} Numero de palavras: 264000
+    \end{itemize}
+    \item Arquivo com 2.66 GB:
+    \begin{itemize}        
+    \item \textbf{Concorrente:} Numero de palavras: 3461161
+        \item \textbf{Sequencial:} Numero de palavras: 3461161
+    \end{itemize}
+\end{itemize}
 
 \section*{4.Avaliação de desempenho}
 

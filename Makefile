@@ -58,7 +58,49 @@ clean:
 
 # ...
 # Adicionada a dependência $(TESTE)
-teste: $(TESTE) $(SEQ)
+corretude: $(SEQ) $(CONC)
+	@( \
+		echo "== INICIANDO EXECUCAO ==" & \
+		echo "---------- Vazio ----------" & \
+		echo "----> SEQUENCIAL" & \
+		$(SEQ) vazio.txt & \
+		echo "----> CONCORRENTE" & \
+		(for %%t in (2 4 8 16) do $(CONC) vazio.txt %%t) & \
+		\
+		echo "---------- Especiais ----------" & \
+		echo "----> SEQUENCIAL" & \
+		$(SEQ) especiais.txt & \
+		echo "----> CONCORRENTE" & \
+		(for %%t in (2 4 8 16) do $(CONC) especiais.txt %%t) & \
+		\
+		echo "---------- Letras ----------" & \
+		echo "----> SEQUENCIAL" & \
+		$(SEQ) letras.txt & \
+		echo "----> CONCORRENTE" & \
+		(for %%t in (2 4 8 16) do $(CONC) letras.txt %%t) & \
+		\
+		echo "---------- KB ----------" & \
+		echo "----> SEQUENCIAL" & \
+		$(SEQ) arquivo_KB.txt & \
+		echo "----> CONCORRENTE" & \
+		(for %%t in (2 4 8 16) do $(CONC) arquivo_KB.txt %%t) & \
+		\
+		echo "---------- MB ----------" & \
+		echo "----> SEQUENCIAL" & \
+		$(SEQ) arquivo_MB.txt & \
+		echo "----> CONCORRENTE" & \
+		(for %%t in (2 4 8 16) do $(CONC) arquivo_MB.txt %%t) & \
+		\
+		echo "---------- GB ----------" & \
+		echo "----> SEQUENCIAL" & \
+		$(SEQ) arquivo_GB.txt & \
+		echo "----> CONCORRENTE" & \
+		(for %%t in (2 4 8 16) do $(CONC) arquivo_GB.txt %%t) & \
+		\
+		echo "== FIM ==" \
+	) > $(LOG_FILE) 2>&1
+
+desempenho: $(TESTE) $(SEQ)
 	@echo "Iniciando arquivo teste"
 	@$(SEQ) old-newspaper.txt
 	@$(TESTE) old-newspaper.txt 4
