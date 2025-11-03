@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    const size_t BUFFER = 1024; // 1 KB
+    const size_t BUFFER = 1024*10; // 1 KB
     char *texto = (char *)malloc(BUFFER);
     if (texto == NULL)
     {

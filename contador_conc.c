@@ -7,7 +7,7 @@
 #include "timer.h" 
 
 #define BUFFER 64
-#define TAMANHO_LEITURA 1024 // 1KB
+#define TAMANHO_LEITURA 1024*10 // 10KB
 
 char *Buffer[BUFFER]; // O buffer compartilhado (fila de tarefas)
 const char *separadores = " \t\n\r¹²³£¢¬§ªº°\"!@#$%¨&*()_+`{}^<>:?'=´[]~,.;/";

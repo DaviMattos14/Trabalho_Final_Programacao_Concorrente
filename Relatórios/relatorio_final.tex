@@ -1,6 +1,11 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
+\usepackage{booktabs} % para linhas mais bonitas nas tabelas
+\usepackage{caption}  % para legenda
+\usepackage{amsmath}  % Para o ambiente align* (alinhar equações)
+\usepackage{siunitx}  % Para alinhar números decimais nas tabelas
+\usepackage{float}    % Para a opção [H] (forçar a tabela a ficar "aqui")
 
 \title{Leitura de arquivo .txt para contagem de palavras}
 \author{Davi dos Santos Mattos \\
@@ -14,123 +19,290 @@
 
 \section*{1. Descrição do problema geral}
 
-O problema escolhido é a contagem de palavras em um \textit{arquivo.txt}. Uma tafera muito comum em aplicações de análise de dados, mineração de texto, recuperação da informação e processamento de linguagem neural.
+O problema escolhido para o trabalho final foi a contagem de palavras em um \textit{arquivo.txt}. Uma tafera muito comum em aplicações de análise de dados, mineração de texto, recuperação da informação e processamento de linguagem neural.
 
-Como bem sabemos existem arquivos de diversos tamanhos, e dependendo do quão grande for, há um limite físico para processar-lo. Causando assim, estouro de memória, em outras palavras, o tamanho do arquivo é maior que o tamanho da memória disponível. Para evitar que esse tipo de problema aconteça, a solução mais adotada é particionar o arquivo em fragmentos menores que caibam na memória, para que assim possam ser processados. Com isso surge um novo problema, dependendo da posição onde for fatiada para delimitar o fragmento, pode ocorrer de uma palavra ser particionada em dois.
+Como bem sabemos, existem arquivos de diversos tamanhos, e dependendo da sua grandeza, existe um limite físico de processamento. Causando assim, estouro de memória, em outras palavras, o tamanho do arquivo é maior que o tamanho da memória disponível. Para evitar que esse tipo de problema aconteça, a solução mais adotada é particionar o arquivo em fragmentos menores que caibam na memória, para que assim seja possível seu processamento. Dessa forma, nos deparamos com um novo problema: dependendo da posição do particionamento para delimitar o fragmento, pode ocorrer de uma palavra ser particionada em duas partes.
 
-A contagem por sua vez, entenque que uma palavra consiste em uma sequência contínua de caracteres alfabéticos, ignorando se a letra está em caixa alta ou caixa baixa. Dentro de um texto, as palavras são delimitadas por separadores, como espaços, pontuações, entre outros, marcando o início e o fim da palavra.
+A contagem por sua vez, entende que uma palavra consiste em uma sequência contínua de caracteres alfabéticos, ignorando se a letra está em caixa alta ou caixa baixa. Dentro de um texto, as palavras são delimitadas por separadores, que definimos no início do código, como espaços, pontuações, entre outros caracteres iniciais, que são responsáveis por marcar o início e o fim de uma palavra.
 
 \begin{itemize}
     \item \textbf{Entrada}: Arquivo de Texto (.txt) qualquer.
     \item \textbf{Saída}: Número de palavras encontradas no arquivo
 \end{itemize}
 
-O problema se beneficia da concorrência quando temos que lidar com arquivos de texto muito grandes, pois podemos dividir o arquivo em fragmentos menores e colocar em uma fila de processamento, fazendo com que cada thread execute a tarefa de contagem de forma paralela, reduzindo drasticamente o tempo de processamento, e aumentando o desemepenho.
+O problema se beneficia da concorrência quando temos que lidar com arquivos de texto muito grandes, pois podemos dividir o arquivo em fragmentos menores e colocar em uma fila de processamento, fazendo com que cada thread execute a tarefa de contagem de forma paralela, reduzindo drasticamente o tempo de processamento, e aumentando o desempenho.
 
 
 \section*{2. Projeto e implementação da solução concorrente}
 
-O projeto consiste em fazer duas implementações, sequencial e concorrente, e realizar duas avaliações, corretude e desempenho.
+O projeto consiste em fazer duas implementações: uma sequencial e outra concorrente, e realizar as avaliações de corretude e desempenho.
 
-A solução sequencial consiste em um programa que lê o arquivo em fragmentos de até 1 KB usando a função fgets. A contagem de palavras é realizada em cada fragmento usando a função strtok, que divide a string com base nos separadores definidos.
+A solução sequencial consiste em um programa que lê o arquivo em fragmentos de até 10 KB usando a função fgets. A contagem de palavras é realizada em cada fragmento usando a função strtok, que divide a string com base nos separadores definidos.
 
-A solução concorrente, por sua vez, consiste em utilizar o modelo produtor-consumidor, onde há uma única thread produtora lendo o arquivo e colocando fragmentos do arquivo em uma fila compartilhada (buffer) entre as threads consumidoras.
+Já a solução concorrente, por sua vez, consiste em utilizar o modelo produtor-consumidor, onde há uma única thread produtora lendo o arquivo e colocando fragmentos do arquivo em uma fila compartilhada (buffer) entre as threads consumidoras.
 
 Para as ambas soluções definimos o seguinte escopo: 
 \begin{itemize} 
-    \item Fragmento de Leitura: 1 KB. 
+    \item Fragmento de Leitura: 10 KB. 
 \end{itemize} 
 Para a solução concorrente, foi definido adicionalmente: 
 \begin{itemize} 
-    \item Tamanho do Buffer: 64 slots, totalizando 64 KB de capacidade. 
+    \item Tamanho do Buffer: 64 slots, totalizando 640 KB de capacidade. 
 \end{itemize}
 
 Vale destacar que as implementações também diferem na estratégia principal de I/O e contagem. A versão sequencial usa \texttt{fgets} (leitura baseada em linha/fragmento) e \texttt{strtok}, enquanto a versão concorrente utiliza \texttt{fread} (leitura otimizada de blocos brutos) e uma função \texttt{contar\_palavras} customizada, que percorre o texto manualmente com auxílio de uma tabela de separadores para consulta, sendo algoritmicamente mais eficiente.
 
-Para tratar o problema da palavra quebrada;
+Para tratar o problema da quebra de palavra;
 
 Na versão sequencial, é feita uma verificação no fragmento de leitura, se o fragmento terminar com um caracter, é utilizado uma flag para sinalizar que há uma palavra quebrada, caso na próxima leitura o fragmento começe com um caracter, a contagem é corrigida.
 
-Na versão concorrente, o tratamento de palavras quebradas é feito diretamente no produtor, antes de enviar os fragmentos às threads consumidoras.
+Já na versão concorrente, o tratamento de palavras quebradas é feito diretamente no produtor, antes de enviar os fragmentos às threads consumidoras.
 Durante a leitura de cada fragmento, o produtor concatena o conteúdo restante do fragmento anterior (armazenado em um buffer de restos) com o novo bloco lido. Em seguida, o produtor procura o último separador válido dentro desse bloco. Se encontrar, ele divide o texto nesse ponto, o conteúdo antes do separador é inserido na fila para ser processado pelas threads, e o conteúdo após o separador é salvo no buffer de restos para ser unido ao próximo fragmento.
 
 Dessa forma, garantimos que nenhuma palavra seja cortada entre dois fragmentos, e que as threads consumidoras recebam apenas blocos com palavras completas, eliminando a necessidade de tratar quebras dentro delas.
 
 \section*{3. Testes de corretude}
 
-Para testar a corretude das implementações, isto é, realizar a contagem correta de palavras em um arquivos, ambas implementações foram submetidas ao sequinte escopo de teste:
+Para testar a corretude das implementações, isto é, realizar a contagem correta de palavras de um arquivo, as implementações foram submetidas ao seguinte escopo de teste:
 
-Arquivos de entrada:
+\subsection*{3.1 Escopo de entrada}
 \begin{itemize}
-    \item Arquivo Teste: Que consiste em um arquivo base no qual já se sabe o número total de palavras que ele contém. (\textbf{Resultado esperado}: 26)
-    \item Arquivo Vazio (Resultado esperado: 0)
+    \item Arquivo Teste: Consiste em um arquivo base no qual já se sabe o número total de palavras que ele contém. (\textbf{Resultado esperado}: 26)
+    \item Arquivo Vazio (\textbf {Resultado esperado:} 0)
     \item Arquivo somente com separadores (\textbf{Resultado esperado}: 0)
-    \item Arquivo com 100 KB de tamanho (Pequeno) (\textbf{Resultado esperado}: 14744)
-    \item Arquivo com 1.5 MB de tamanho (Médio) (\textbf{Resultado esperado}: 264000)
-    \item Arquivo com 2.66 GB de tamanho (Grande)
+    \item Arquivo de 100 KB  (Pequeno) (\textbf{Resultado esperado}: 14744)
+    \item Arquivo de 1.5 MB  (Médio) (\textbf{Resultado esperado}: 264000)
+    \item Arquivo de 2.66 GB  (Grande)
 \end{itemize}
 
-Para a versão concorrente fora utilizado as seguintes quantidade de threads:
+Para a versão concorrente foram utilizadas as seguintes quantidade de threads:
+
 \begin{itemize}
     \item 2 threads
     \item 4 threads
     \item 8 threads
-    \item 16 threads
 \end{itemize}
 
+\subsection*{3.2 Resultados Obtidos}
 Após executar os testes foram obtidos os seguintes resultados:
 
 \begin{itemize}
-    \item Arquivo Teste com letras do alfabeto
+    \item Arquivo Teste com as letras do alfabeto
     \begin{itemize}
-        \item \textbf{Concorrente:} Numero de palavras: 26
-        \item \textbf{Sequencial:} Numero de palavras: 26
+        \item \textbf{Concorrente:} Número de palavras: 26
+        \item \textbf{Sequencial:} Número de palavras: 26
     \end{itemize}
     \item Arquivo Vazio
     \begin{itemize}
-        \item \textbf{Concorrente:} Numero de palavras: 0 
-        \item \textbf{Sequencial:} Numero de palavras: 0
+        \item \textbf{Concorrente:} Número de palavras: 0 
+        \item \textbf{Sequencial:} Número de palavras: 0
     \end{itemize}
     \item Arquivo somente com separadores
     \begin{itemize}
-        \item \textbf{Concorrente:} Numero de palavras: 0
-        \item \textbf{Sequencial:} Numero de palavras: 0
+        \item \textbf{Concorrente:} Número de palavras: 0
+        \item \textbf{Sequencial:} Número de palavras: 0
     \end{itemize}
-    \item Arquivo com 100 KB
+    \item Arquivo de 100 KB
     \begin{itemize}
-        \item \textbf{Concorrente:} Numero de palavras: 14744
-        \item \textbf{Sequencial:} Numero de palavras: 14744
+        \item \textbf{Concorrente:} Número de palavras: 14744
+        \item \textbf{Sequencial:} Número de palavras: 14744
     \end{itemize}
-    \item Arquivo com 1.5 MB:
+    \item Arquivo de 1.5 MB:
     \begin{itemize}
-        \item \textbf{Concorrente:} Numero de palavras: 264000
-        \item \textbf{Sequencial:} Numero de palavras: 264000
+        \item \textbf{Concorrente:} Número de palavras: 264000
+        \item \textbf{Sequencial:} Número de palavras: 264000
     \end{itemize}
-    \item Arquivo com 2.66 GB:
-    \begin{itemize}        
-    \item \textbf{Concorrente:} Numero de palavras: 3461161
-        \item \textbf{Sequencial:} Numero de palavras: 3461161
+    \item Arquivo de 500 MB:
+    \begin{itemize}
+        \item \textbf{Concorrente:} Número de palavras: 87760050
+        \item \textbf{Sequencial:} Número de palavras: 87760050
+    \end{itemize}
+    \item Arquivo de 1 GB:
+    \begin{itemize}
+        \item \textbf{Concorrente:} Número de palavras: 175520100
+        \item \textbf{Sequencial:} Número de palavras: 175520100
+    \end{itemize}
+    \item Arquivo de 2 GB:
+    \begin{itemize}
+        \item \textbf{Concorrente:} Número de palavras: 351040200
+        \item \textbf{Sequencial:} Número de palavras: 351040200
+    \end{itemize}
+    \item Arquivo de 4 GB:
+    \begin{itemize}
+        \item \textbf{Concorrente:} Número de palavras: 702080400
+        \item \textbf{Sequencial:} Número de palavras: 702080400
     \end{itemize}
 \end{itemize}
 
-\section*{4.Avaliação de desempenho}
+\section*{4. Avaliação de desempenho}
 
-Descrever como o ganho de desempenho foi avaliado:
+Para realizar a avaliação selecionamos arquivos .txt de diversos tamanhos, todos foram submetidos a versão sequencial e a concorrente variando o número de threads.
 
+\subsection*{4.1 Conjunto de casos de teste} 
+
+\item Tamanho dos Arquivos
+    \begin{itemize}
+        \item \textbf{100 KB:}
+        \item \textbf{1.5 MB:}
+        \item \textbf{500 MB:}
+        \item \textbf{1 GB:} 
+        \item \textbf{2 GB:} 
+        \item \textbf{4 GB:} 
+    \end{itemize}
+Como o método escolhido foi o produtor-consumidor, o número mínimo de threads concorrentes sempre será duas. Levando isso em consideração, para versão concorrente variamos o número de threads entre \textbf{\{2, 4, 8\}}
+
+\subsection*{4.2 Configações das Máquinas para os Testes}
 \begin{itemize}
-    \item descrever o conjunto de casos de teste usados para a avaliação de desempenho
-    (lembrar de variar a dimensão dos dados de entrada e o número de threads usadas);
-    \item descrever a configuração da máquina onde os testes foram realizados (identificação
-    do processador, quantidade de núcleos de execução, sistema operacional);
-    \item descrever quantas vezes o mesmo caso de teste foi executado e qual medida de
-    tempo foi escolhida;
-    \item mostrar o cálculo da aceleração e eficiência e/ou outras métricas pertinentes ao
-    problema;
-    \item apresentar os resultados obtidos condensados na forma de tabelas ou gráficos.
+    \item {Máquina 1}
+    \begin{itemize}
+        \item \textbf{Processador:} Intel(R) Core(TM) I5-7400 CPU @3.00GHz
+        \item \textbf{Quantidade de núcleos de execução:} 4
+        \item \textbf{Sistema Operacional:} Windows 10 
+    \end{itemize}
+    \item {Máquina 2} 
+    \begin{itemize}
+        \item \textbf{Processador:} Intel(R) Core(TM) i3-3110M CPU @ 2.40GHz
+        \item \textbf{Quantidade de núcleos de execução:} 2
+        \item \textbf{Sistema Operacional:} Windows 10
+    \end{itemize}
+    \item {Máquina 3}
+    \begin{itemize}
+        \item \textbf{Processador:}
+        \item \textbf{Quantidade de núcleos de execução:}
+        \item \textbf{Sistema Operacional:}
+    \end{itemize}
 \end{itemize}
 
-Não mostrar as telas de execução, o objetivo aqui é apresentar os resultados finais
-obtidos (tempo de execução, aceleração, eficiência, etc.).
+    \subsection*{4.3 Resultados Obtidos}
+    Cada caso de teste foi executado \textbf{15 vezes} (5 vezes em cada máquina de teste), para cada caso de teste foi medido seu tempo de execução. Para versão sequencial, a contagem se inicia no momento que é iniciada a leitura do arquivo, e para a versão concorrente, no momento de criação das threads. 
+    
+    A medida de tempo escolhida para realizar a avaliação foi o tempo médio em segundos, visando mitigar variações/ruídos do sistema operacional, com o objetivo de obter um resultado mais estável e confiável.
+
+    Utilizamos quatro métricas para realizar a avaliação;
+    
+    \textbf{aceleração}, que mede o quanto a versão paralela é mais rápida que a versão sequencial;
+    
+    \textbf{eficiência}, mede o quão bem os recursos (as $n$ threads) foram utilizados;
+    
+    \textbf{custo}, que mede o total de "tempo de CPU" que o programa consumiu em todas as threads;
+    
+    \textbf{sobrecarga total}, que é a diferença entre o Custo total da execução paralela e o custo da execução sequencial.
+\newpage
+\begin{itemize}
+\item Tempos médios obtidos
+    \begin{table}[H]
+        \centering
+        \begin{tabular}{lcccccc}
+            \toprule
+            \textbf{Nº de Threads} & \textbf{100KB} & \textbf{1.5MB} & \textbf{500MB} & \textbf{1GB} & \textbf{2GB} & \textbf{4GB} \\
+            \midrule
+            Sequencial & 0.005 & 0.0758 & 25.893 & 52.922 & 100.722 & 200.985 \\
+            2 threads             & 0.002 & 0.023  & 7.816  & 15.973 & 31.119  & 63.168  \\
+            4 threads             & 0.002 & 0.0267 & 8.215  & 16.475 & 32.969  & 66.725  \\
+            8 threads             & 0.003 & 0.036  & 8.267  & 16.580 & 33.202  & 66.977  \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+    
+\item Aceleração
+    \begin{equation}
+    A_n = T_s / T_n
+    \end{equation}
+Onde,
+\begin{itemize}
+    \item $A_n$ = Aceleração para $n$ threads.
+    \item $T_s$ = Tempo de execução Sequencial 
+    \item $T_n$ = Tempo de execução Paralela usando $n$ threads.
+\end{itemize}
+
+    \begin{table}[h!]
+    \centering
+    \begin{tabular}{lllllll}
+    \toprule
+    Aceleração $A(n,p)$    & 100KB & 1.5MB & 500MB & 1GB  & 2GB  & 4GB  \\
+    \midrule
+    2 threads & 0.50  & 3     & 3.51  & 3.30 & 3.22 & 3.19 \\
+    4 threads & 0.40  & 3.10  & 3.35  & 3.20 & 3.05 & 3.02 \\
+    8 threads & 0.44  & 1     & 3.33  & 3.17 & 3.04 & 3  \\
+        \bottomrule
+    \end{tabular}
+    \end{table}
+    
+\item Eficiência
+\begin{equation}
+    E_n = \frac{A_n}{n}
+\end{equation}
+Onde,
+\begin{itemize}
+    \item $E_n$ = Eficiência para $n$ threads.
+    \item $A_n$ = Aceleração
+    \item $n$ = O número de threads usados 
+\end{itemize}
+     \begin{table}[h!]
+    \centering
+    \begin{tabular}{lllllll}
+    \toprule
+    Eficiência $E_n$    & 100KB & 1.5MB & 500MB & 1GB  & 2GB  & 4GB  \\
+    \midrule
+    2 threads & 24.95\%  &  149,99\%    & 175,64\%  & 164,50\% & 161,19\% & 159,74\% \\
+    4 threads & 10,04\%  & 77,49\%  & 83,41\%  & 79,99\% & 76,33\% & 75,48\% \\
+    8 threads & 3,49\%  & 7,99\%     & 26,62\%  & 25,37\% & 38,04\% & 37,53\%  \\
+        \bottomrule
+    \end{tabular}
+    \end{table}
+
+\newpage
+\item Custo
+\begin{equation}
+    C_n = n \times T_n
+\end{equation}
+
+\begin{table}[H]
+\centering
+\caption{Valores de Custo $C_p = p \times T_p$ (em segundos-processador)}
+\label{tab:custo}
+% Configura as colunas 'S' para alinhar pelo decimal
+\begin{tabular}{l S[table-format=1.2]
+                  S[table-format=2.2]
+                  S[table-format=2.2]
+                  S[table-format=2.2]
+                  S[table-format=2.2]
+                  S[table-format=2.2]}
+\toprule
+\textbf{Custo $C_p$} & {\textbf{100KB}} & {\textbf{1.5MB}} & {\textbf{500MB}} & {\textbf{1GB}} & {\textbf{2GB}} & {\textbf{4GB}} \\
+\midrule
+2 threads & 1.00 & 6.00 & 7.03 & 6.59 & 6.45 & 6.39 \\
+4 threads & 1.61 & 12.40 & 13.35 & 12.80 & 12.21 & 12.08 \\
+8 threads & 3.50 & 7.99 & 26.63 & 25.37 & 24.35 & 24.02 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\item Sobrecarga Total (Overhead)
+\begin{equation}
+    T_o = C_n - T_s = (n \times T_n) - T_s
+\end{equation}
+
+\begin{table}[H]
+\centering
+\caption{Valores de Sobrecarga Total $T_o = C_p - T_s$ (em segundos)}
+\label{tab:sobrecarga}
+% Configura as colunas 'S' para lidar com sinais negativos e casas decimais
+\begin{tabular}{l S[table-format=-1.2]
+                  S[table-format=-1.2]
+                  S[table-format=-2.2]
+                  S[table-format=-2.2]
+                  S[table-format=-3.2]
+                  S[table-format=-3.2]}
+\toprule
+\textbf{Sobrecarga $T_o$} & {\textbf{100KB}} & {\textbf{1.5MB}} & {\textbf{500MB}} & {\textbf{1GB}} & {\textbf{2GB}} & {\textbf{4GB}} \\
+\midrule
+2 threads & 0.9923 &  5.9004 &  -20.4315 &  -45.9158  & -94.2646 & -194.3911 \\
+4 threads & 1.6019 & 12.3004 &  -14.1108 & -39.7108 &  -88.4982 & -188.704 \\
+8 threads & 3.4915 & 7.8955 & -0.8287 & -27.1406  & -76.3655 & -176.7579 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section*{5. Discussão}
 
@@ -144,18 +316,35 @@ Apresentar uma análise dos resultados obtidos:
     \item descrever dificuldades encontradas para a realização do trabalho, se for o caso.
 \end{itemize}
 
+\subsection*{5.1 Discussão sobre o ganho de desempenho} 
+
+\subsection*{5.2 Possíveis Melhorias do Programa} 
+
+\item \textbf{Otimizar o Produtor:} foi observado através dos testes que o gargalo presente no código é causado pelo produtor, cuja lógica para a preparação dos blocos é ineficiente, devido ao uso das funções de string de C (strcpy, strcat, strlen), que percorrem os blocos de dados.
+\item \textbf{Flexibilização dos Parâmetros:} permitir a passagem dos parâmetros para o tamanho da fila e para o tamanho da leitura, sendo possível dessa forma encontrar num ponto de equilíbrio para a quantidade de threads e tamanho dos arquivos
+
+
+\subsection*{5.3 Questões Pertinentes} 
+
+\subsection*{5.4 Dificuldades encontradas} 
+\item{Resultados Contraintuitivos:} era esperado que 4 threads fossem mais rápidas que 2, e os dados obtidos mostraram um resultado oposto, exigindo dessa forma u
+
+
 \section*{6. Referências bibliográficas}
 \begin{thebibliography}{9}
     \bibitem{exemplo1}
     Rossetto, S. \textbf{Slides de Aula}. 
 
     \bibitem{exemplo2}
-    Maratona de programação paralela (Mackenzie). Disponível em: http://lspd.mackenzie.br/marathon/old.html. 
+    Fernandes, M. \textbf{TCC - Análise de ferramentas de teste no contexto de aprendizado de programação concorrente, 2021}. 
 
     \bibitem{exemplo3}
-    P. Pacheco, \textbf{An Introduction to Parallel Programming}, Morgan Kaufmann, 2011.
+    Maratona de programação paralela (Mackenzie). Disponível em: http://lspd.mackenzie.br/marathon/old.html. 
 
     \bibitem{exemplo4}
+    P. Pacheco, \textbf{An Introduction to Parallel Programming}, Morgan Kaufmann, 2011.
+
+    \bibitem{exemplo5}
     Martin Porter’s Stemming algorithm as a C library. Disponível em: https://github.com/wooorm/stmr.c
 
     

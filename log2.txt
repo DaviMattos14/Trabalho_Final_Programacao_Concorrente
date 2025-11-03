@@ -1,0 +1,44 @@
+"== INICIANDO EXECUCAO ==" 
+"---------- 100 KB ----------" 
+"----> SEQUENCIAL" 
+Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.004899
+"----> CONCORRENTE" 
+Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.001997 	Num Threads: 2
+Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.001999 	Num Threads: 4
+Arquivo: arquivo_KB.txt 	Numero de palavras: 14744 	Tempo de Execucao: 0.002997 	Num Threads: 8
+"---------- 1.5 MB ----------" 
+"----> SEQUENCIAL" 
+Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.069494
+"----> CONCORRENTE" 
+Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.022984 	Num Threads: 2
+Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.026982 	Num Threads: 4
+Arquivo: arquivo_MB.txt 	Numero de palavras: 264000 	Tempo de Execucao: 0.031007 	Num Threads: 8
+"---------- 500 MB ----------" 
+"----> SEQUENCIAL" 
+Arquivo: arquivo_500MB.txt 	Numero de palavras: 87760050 	Tempo de Execucao: 25.490782
+"----> CONCORRENTE" 
+Arquivo: arquivo_500MB.txt 	Numero de palavras: 87760050 	Tempo de Execucao: 7.956216 	Num Threads: 2
+Arquivo: arquivo_500MB.txt 	Numero de palavras: 87760050 	Tempo de Execucao: 7.883921 	Num Threads: 4
+Arquivo: arquivo_500MB.txt 	Numero de palavras: 87760050 	Tempo de Execucao: 7.993773 	Num Threads: 8
+"---------- 1GB ----------" 
+"----> SEQUENCIAL" 
+Arquivo: arquivo1GB.txt 	Numero de palavras: 175520100 	Tempo de Execucao: 48.520063
+"----> CONCORRENTE" 
+Arquivo: arquivo1GB.txt 	Numero de palavras: 175520100 	Tempo de Execucao: 15.153784 	Num Threads: 2
+Arquivo: arquivo1GB.txt 	Numero de palavras: 175520100 	Tempo de Execucao: 15.673316 	Num Threads: 4
+Arquivo: arquivo1GB.txt 	Numero de palavras: 175520100 	Tempo de Execucao: 15.885095 	Num Threads: 8
+"---------- 2GB ----------" 
+"----> SEQUENCIAL" 
+Arquivo: arquivo2GB.txt 	Numero de palavras: 351040200 	Tempo de Execucao: 99.797760
+"----> CONCORRENTE" 
+Arquivo: arquivo2GB.txt 	Numero de palavras: 351040200 	Tempo de Execucao: 29.776245 	Num Threads: 2
+Arquivo: arquivo2GB.txt 	Numero de palavras: 351040200 	Tempo de Execucao: 32.083419 	Num Threads: 4
+Arquivo: arquivo2GB.txt 	Numero de palavras: 351040200 	Tempo de Execucao: 32.326517 	Num Threads: 8
+"---------- 4GB ----------" 
+"----> SEQUENCIAL" 
+Arquivo: arquivo4GB.txt 	Numero de palavras: 702080400 	Tempo de Execucao: 196.728514
+"----> CONCORRENTE" 
+Arquivo: arquivo4GB.txt 	Numero de palavras: 702080400 	Tempo de Execucao: 60.438725 	Num Threads: 2
+Arquivo: arquivo4GB.txt 	Numero de palavras: 702080400 	Tempo de Execucao: 63.909465 	Num Threads: 4
+Arquivo: arquivo4GB.txt 	Numero de palavras: 702080400 	Tempo de Execucao: 65.353872 	Num Threads: 8
+"== FIM ==" 

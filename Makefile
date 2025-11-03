@@ -124,3 +124,12 @@ desempenho: $(TESTE) $(SEQ)
 	@$(TESTE) old-newspaper.txt 4
 	@$(TESTE) old-newspaper.txt 8
 	@echo "FIM"
+
+run10:
+	@for /L %%i in (1,1,10) do ( \
+		echo Executando %%i... && \
+		$(MAKE) -s run && \
+		@move /Y $(LOG_FILE) log%%i.txt > NUL \
+	)
+
+
