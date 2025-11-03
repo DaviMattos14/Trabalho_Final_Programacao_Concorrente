@@ -11,7 +11,7 @@
 \author{Davi dos Santos Mattos \\
         Daniel Li Vam Man \\
         Pedro André Alves Chaves}
-\date{Relatório Parcial \\ Programação Concorrente (ICP-361) - 2025/2}
+\date{Relatório Final \\ Programação Concorrente (ICP-361) - 2025/2}
 
 \begin{document}
 
@@ -32,27 +32,28 @@ A contagem por sua vez, entende que uma palavra consiste em uma sequência cont�
 
 O problema se beneficia da concorrência quando temos que lidar com arquivos de texto muito grandes, pois podemos dividir o arquivo em fragmentos menores e colocar em uma fila de processamento, fazendo com que cada thread execute a tarefa de contagem de forma paralela, reduzindo drasticamente o tempo de processamento, e aumentando o desempenho.
 
-
+\newpage
 \section*{2. Projeto e implementação da solução concorrente}
 
 O projeto consiste em fazer duas implementações: uma sequencial e outra concorrente, e realizar as avaliações de corretude e desempenho.
 
-A solução sequencial consiste em um programa que lê o arquivo em fragmentos de até 10 KB usando a função fgets. A contagem de palavras é realizada em cada fragmento usando a função strtok, que divide a string com base nos separadores definidos.
+A solução sequencial consiste em um programa que lê o arquivo em fragmentos de até 1 KB usando a função fgets. A contagem de palavras é realizada em cada fragmento usando a função strtok, que divide a string com base nos separadores definidos.
 
-Já a solução concorrente, por sua vez, consiste em utilizar o modelo produtor-consumidor, onde há uma única thread produtora lendo o arquivo e colocando fragmentos do arquivo em uma fila compartilhada (buffer) entre as threads consumidoras.
+Já a solução concorrente, por sua vez, consiste em utilizar o modelo produtor-consumidor, onde há uma única thread produtora lendo o arquivo e colocando fragmentos de 10KB do arquivo em uma fila compartilhada (buffer) entre as threads consumidoras.
 
-Para as ambas soluções definimos o seguinte escopo: 
+Para solução sequencial definimos o seguinte escopo: 
 \begin{itemize} 
-    \item Fragmento de Leitura: 10 KB. 
+    \item Fragmento de Leitura: até 1 KB. 
 \end{itemize} 
-Para a solução concorrente, foi definido adicionalmente: 
+Para a solução concorrente, foi definido: 
 \begin{itemize} 
+    \item Fragmento de Leitura: 10KB
     \item Tamanho do Buffer: 64 slots, totalizando 640 KB de capacidade. 
 \end{itemize}
 
 Vale destacar que as implementações também diferem na estratégia principal de I/O e contagem. A versão sequencial usa \texttt{fgets} (leitura baseada em linha/fragmento) e \texttt{strtok}, enquanto a versão concorrente utiliza \texttt{fread} (leitura otimizada de blocos brutos) e uma função \texttt{contar\_palavras} customizada, que percorre o texto manualmente com auxílio de uma tabela de separadores para consulta, sendo algoritmicamente mais eficiente.
 
-Para tratar o problema da quebra de palavra;
+Quando o programa subdivide o arquivo em blocos menores, pode ocorre de uma palavra ser fatiada ao meio, como por exemplo a palavra \textit{concorrente}, se ela estiver localizada no fim do bloco ela pode ser dividida em \textit{conco} e \textit{rrente}, com cada pedaço em um bloco diferente; Para tratar isso;
 
 Na versão sequencial, é feita uma verificação no fragmento de leitura, se o fragmento terminar com um caracter, é utilizado uma flag para sinalizar que há uma palavra quebrada, caso na próxima leitura o fragmento começe com um caracter, a contagem é corrigida.
 
@@ -63,16 +64,25 @@ Dessa forma, garantimos que nenhuma palavra seja cortada entre dois fragmentos, 
 
 \section*{3. Testes de corretude}
 
-Para testar a corretude das implementações, isto é, realizar a contagem correta de palavras de um arquivo, as implementações foram submetidas ao seguinte escopo de teste:
+Para testar a corretude da implementação, isto é, realizar a contagem correta de palavras de um arquivo, a implementação foi submetida a diferentes testes, alguns casos básicos, onde já se tem um resultado esperado, e outros casos mais realistas, onde se espera que ambas as versões apontem o mesmo resultado.
 
 \subsection*{3.1 Escopo de entrada}
 \begin{itemize}
-    \item Arquivo Teste: Consiste em um arquivo base no qual já se sabe o número total de palavras que ele contém. (\textbf{Resultado esperado}: 26)
-    \item Arquivo Vazio (\textbf {Resultado esperado:} 0)
-    \item Arquivo somente com separadores (\textbf{Resultado esperado}: 0)
-    \item Arquivo de 100 KB  (Pequeno) (\textbf{Resultado esperado}: 14744)
-    \item Arquivo de 1.5 MB  (Médio) (\textbf{Resultado esperado}: 264000)
-    \item Arquivo de 2.66 GB  (Grande)
+    \item Testes Controlados
+    \begin{itemize}
+        \item Arquivo Teste: Consiste em um arquivo base no qual já se sabe o número total de palavras que ele contém. (\textbf{Resultado esperado}: 26)
+        \item Arquivo Vazio (\textbf {Resultado esperado:} 0)
+        \item Arquivo somente com separadores (\textbf{Resultado esperado}: 0)
+        \item Arquivo de 100 KB (\textbf{Resultado esperado}: 14744)
+        \item Arquivo de 1.5 MB (\textbf{Resultado esperado}: 264000)
+    \end{itemize}
+    \item Teste de Pariedade
+    \begin{itemize}
+        \item Arquivo de 500MB
+        \item Arquivo de 1GB
+        \item Arquivo de 2GB
+        \item Arquivo de 4GB
+    \end{itemize}
 \end{itemize}
 
 Para a versão concorrente foram utilizadas as seguintes quantidade de threads:
@@ -89,51 +99,54 @@ Após executar os testes foram obtidos os seguintes resultados:
 \begin{itemize}
     \item Arquivo Teste com as letras do alfabeto
     \begin{itemize}
-        \item \textbf{Concorrente:} Número de palavras: 26
         \item \textbf{Sequencial:} Número de palavras: 26
+        \item \textbf{Concorrente:} Número de palavras: 26
     \end{itemize}
     \item Arquivo Vazio
     \begin{itemize}
-        \item \textbf{Concorrente:} Número de palavras: 0 
         \item \textbf{Sequencial:} Número de palavras: 0
+        \item \textbf{Concorrente:} Número de palavras: 0 
     \end{itemize}
     \item Arquivo somente com separadores
     \begin{itemize}
-        \item \textbf{Concorrente:} Número de palavras: 0
         \item \textbf{Sequencial:} Número de palavras: 0
+        \item \textbf{Concorrente:} Número de palavras: 0
     \end{itemize}
     \item Arquivo de 100 KB
     \begin{itemize}
-        \item \textbf{Concorrente:} Número de palavras: 14744
         \item \textbf{Sequencial:} Número de palavras: 14744
+        \item \textbf{Concorrente:} Número de palavras: 14744
     \end{itemize}
     \item Arquivo de 1.5 MB:
     \begin{itemize}
-        \item \textbf{Concorrente:} Número de palavras: 264000
         \item \textbf{Sequencial:} Número de palavras: 264000
+        \item \textbf{Concorrente:} Número de palavras: 264000
     \end{itemize}
     \item Arquivo de 500 MB:
     \begin{itemize}
-        \item \textbf{Concorrente:} Número de palavras: 87760050
         \item \textbf{Sequencial:} Número de palavras: 87760050
+        \item \textbf{Concorrente:} Número de palavras: 87760050
     \end{itemize}
     \item Arquivo de 1 GB:
     \begin{itemize}
-        \item \textbf{Concorrente:} Número de palavras: 175520100
         \item \textbf{Sequencial:} Número de palavras: 175520100
+        \item \textbf{Concorrente:} Número de palavras: 175520100
     \end{itemize}
     \item Arquivo de 2 GB:
     \begin{itemize}
-        \item \textbf{Concorrente:} Número de palavras: 351040200
         \item \textbf{Sequencial:} Número de palavras: 351040200
+        \item \textbf{Concorrente:} Número de palavras: 351040200
     \end{itemize}
     \item Arquivo de 4 GB:
     \begin{itemize}
-        \item \textbf{Concorrente:} Número de palavras: 702080400
         \item \textbf{Sequencial:} Número de palavras: 702080400
+        \item \textbf{Concorrente:} Número de palavras: 702080400
     \end{itemize}
 \end{itemize}
 
+Tendo o resultados acima conclui-se a corretude do programa concorrente.
+
+\newpage
 \section*{4. Avaliação de desempenho}
 
 Para realizar a avaliação selecionamos arquivos .txt de diversos tamanhos, todos foram submetidos a versão sequencial e a concorrente variando o número de threads.
@@ -149,26 +162,31 @@ Para realizar a avaliação selecionamos arquivos .txt de diversos tamanhos, tod
         \item \textbf{2 GB:} 
         \item \textbf{4 GB:} 
     \end{itemize}
-Como o método escolhido foi o produtor-consumidor, o número mínimo de threads concorrentes sempre será duas. Levando isso em consideração, para versão concorrente variamos o número de threads entre \textbf{\{2, 4, 8\}}
+Como o método escolhido foi o produtor-consumidor, o número mínimo de threads concorrentes sempre será duas. Levando isso em consideração, para versão concorrente variamos o número de threads consumidoras entre \textbf{\{2, 4, 8\}}.
+\begin{itemize}
+    \item 2 threads (\textbf{1 Produtora e 1 Consumidora})
+    \item 4 threads (\textbf{1 Produtora e 3 Consumidoras})
+    \item 8 threads (\textbf{1 Produtora e 7 Consumidoras})
+\end{itemize}
 
 \subsection*{4.2 Configações das Máquinas para os Testes}
 \begin{itemize}
     \item {Máquina 1}
     \begin{itemize}
         \item \textbf{Processador:} Intel(R) Core(TM) I5-7400 CPU @3.00GHz
-        \item \textbf{Quantidade de núcleos de execução:} 4
+        \item \textbf{Núcleos/Threads:} 4 / 4
         \item \textbf{Sistema Operacional:} Windows 10 
     \end{itemize}
     \item {Máquina 2} 
     \begin{itemize}
         \item \textbf{Processador:} Intel(R) Core(TM) i3-3110M CPU @ 2.40GHz
-        \item \textbf{Quantidade de núcleos de execução:} 2
+        \item \textbf{Núcleos/Threads:} 2 / 4
         \item \textbf{Sistema Operacional:} Windows 10
     \end{itemize}
     \item {Máquina 3}
     \begin{itemize}
         \item \textbf{Processador:}
-        \item \textbf{Quantidade de núcleos de execução:}
+        \item \textbf{Núcleos/Threads:}
         \item \textbf{Sistema Operacional:}
     \end{itemize}
 \end{itemize}
@@ -180,14 +198,14 @@ Como o método escolhido foi o produtor-consumidor, o número mínimo de threads
 
     Utilizamos quatro métricas para realizar a avaliação;
     
-    \textbf{aceleração}, que mede o quanto a versão paralela é mais rápida que a versão sequencial;
+    \textbf{Aceleração}, que mede o quanto a versão paralela é mais rápida que a versão sequencial;
     
-    \textbf{eficiência}, mede o quão bem os recursos (as $n$ threads) foram utilizados;
+    \textbf{Eficiência}, mede o quão bem os recursos (as $n$ threads) foram utilizados;
     
-    \textbf{custo}, que mede o total de "tempo de CPU" que o programa consumiu em todas as threads;
+    \textbf{Custo}, que mede o total de "tempo de CPU" que o programa consumiu em todas as threads;
     
-    \textbf{sobrecarga total}, que é a diferença entre o Custo total da execução paralela e o custo da execução sequencial.
-\newpage
+    \textbf{Sobrecarga total}, que é a diferença entre o custo total da execução paralela e o custo da execução sequencial.
+
 \begin{itemize}
 \item Tempos médios obtidos
     \begin{table}[H]
@@ -196,7 +214,7 @@ Como o método escolhido foi o produtor-consumidor, o número mínimo de threads
             \toprule
             \textbf{Nº de Threads} & \textbf{100KB} & \textbf{1.5MB} & \textbf{500MB} & \textbf{1GB} & \textbf{2GB} & \textbf{4GB} \\
             \midrule
-            Sequencial & 0.005 & 0.0758 & 25.893 & 52.922 & 100.722 & 200.985 \\
+            Sequencial & 0.006 & 0.099 & 27.457 & 52.510 & 100.712 & 200.780 \\
             2 threads             & 0.002 & 0.023  & 7.816  & 15.973 & 31.119  & 63.168  \\
             4 threads             & 0.002 & 0.0267 & 8.215  & 16.475 & 32.969  & 66.725  \\
             8 threads             & 0.003 & 0.036  & 8.267  & 16.580 & 33.202  & 66.977  \\
@@ -219,11 +237,11 @@ Onde,
     \centering
     \begin{tabular}{lllllll}
     \toprule
-    Aceleração $A(n,p)$    & 100KB & 1.5MB & 500MB & 1GB  & 2GB  & 4GB  \\
+    Aceleração $A_n$    & 100KB & 1.5MB & 500MB & 1GB  & 2GB  & 4GB  \\
     \midrule
-    2 threads & 0.50  & 3     & 3.51  & 3.30 & 3.22 & 3.19 \\
+    2 threads & 0.50  & 3.00     & 3.51  & 3.30 & 3.22 & 3.19 \\
     4 threads & 0.40  & 3.10  & 3.35  & 3.20 & 3.05 & 3.02 \\
-    8 threads & 0.44  & 1     & 3.33  & 3.17 & 3.04 & 3  \\
+    8 threads & 0.44  & 1.00     & 3.33  & 3.17 & 3.04 & 3.00  \\
         \bottomrule
     \end{tabular}
     \end{table}
@@ -250,8 +268,6 @@ Onde,
         \bottomrule
     \end{tabular}
     \end{table}
-
-\newpage
 \item Custo
 \begin{equation}
     C_n = n \times T_n
@@ -259,7 +275,6 @@ Onde,
 
 \begin{table}[H]
 \centering
-\caption{Valores de Custo $C_p = p \times T_p$ (em segundos-processador)}
 \label{tab:custo}
 % Configura as colunas 'S' para alinhar pelo decimal
 \begin{tabular}{l S[table-format=1.2]
@@ -285,7 +300,6 @@ Onde,
 
 \begin{table}[H]
 \centering
-\caption{Valores de Sobrecarga Total $T_o = C_p - T_s$ (em segundos)}
 \label{tab:sobrecarga}
 % Configura as colunas 'S' para lidar com sinais negativos e casas decimais
 \begin{tabular}{l S[table-format=-1.2]
@@ -303,7 +317,8 @@ Onde,
 \bottomrule
 \end{tabular}
 \end{table}
-
+\end{itemize}
+\newpage
 \section*{5. Discussão}
 
 Apresentar uma análise dos resultados obtidos:
@@ -317,6 +332,12 @@ Apresentar uma análise dos resultados obtidos:
 \end{itemize}
 
 \subsection*{5.1 Discussão sobre o ganho de desempenho} 
+Analisando os resultados obtidos podemos ver que a versão concorrente reduziu o tempo numa média 3 vezes em relação ao sequencial, o que por sua vez é um ganho considerável, principalmente quando se trata de arquivos muitos grandes, cumprindo assim o objetivo principal do projeto.
+
+Através dos resultados podemos ver também como a limitação física impacta no desempenho, pois como a média de núcleos/threads dos processadores das máquinas utilizadas é de 3/4, podemos ver tanto na tabela de eficiencia, quanto na tabela de custo, que quando aumentamos o número de threads de 4 para 8, perdemos em eficiência e aumentamos o custo. A pesar do tempo médio e aceleração serem relativamente próximos.
+
+O mesmo pode ser visto se analisarmos os casos com 2 e 4 threads, pois como uma das máquinas tem menos núcleos/threads que as outras, nos casos com menos threads, a mesma apontaraá mais eficiência frente aos casos com mais thread, que pode explicar a maior média de eficiência no caso com apenas 2 threads.  
+
 
 \subsection*{5.2 Possíveis Melhorias do Programa} 
 
@@ -327,9 +348,10 @@ Apresentar uma análise dos resultados obtidos:
 \subsection*{5.3 Questões Pertinentes} 
 
 \subsection*{5.4 Dificuldades encontradas} 
-\item{Resultados Contraintuitivos:} era esperado que 4 threads fossem mais rápidas que 2, e os dados obtidos mostraram um resultado oposto, exigindo dessa forma u
+\item\textbf{Resultados Contraintuitivos:} era esperado que 4 threads fossem mais rápidas que 2, e os dados obtidos mostraram um resultado oposto, exigindo dessa forma uma análise mais profunda na tentativa de identificar o verdadeiro gargalo, que foi a descoberta de que o Produtor estava bem mais lento que os Consumidores.
+\item \textbf{Implementação da lógica da quebra em blocos}: conforme já esperado pelo grupo, a implementação da lógica de quebra dos blocos se mostrou bastante complexa, exigindo bastante tempo de desenvolvimento.
 
-
+\newpage
 \section*{6. Referências bibliográficas}
 \begin{thebibliography}{9}
     \bibitem{exemplo1}
