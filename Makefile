@@ -120,9 +120,12 @@ corretude: $(SEQ) $(CONC)
 
 desempenho: $(TESTE) $(SEQ)
 	@echo "Iniciando arquivo teste"
-	@$(SEQ) old-newspaper.txt
-	@$(TESTE) old-newspaper.txt 4
-	@$(TESTE) old-newspaper.txt 8
+	@$(TESTE) arquivo_KB.txt 4
+	@$(TESTE) arquivo_MB.txt 4
+	@$(TESTE) arquivo_500MB.txt 4
+	@$(TESTE) arquivo1GB.txt 4
+	@$(TESTE) arquivo2GB.txt 4
+	@$(TESTE) arquivo4GB.txt 4
 	@echo "FIM"
 
 run10:
